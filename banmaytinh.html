@@ -1,0 +1,2076 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - Cửa Hàng & Quản Trị Bảo Mật</title>
+    <!-- Tailwind CSS và FontAwesome Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hidden { display: none !important; }
+        .toast-active { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-g  ray-800 flex flex-col min-h-screen">
+
+    <!-- ================= TOAST NOTIFICATION (THÔNG BÁO TỰ CHẾ) ================= -->
+    <div id="toast" class="fixed top-5 right-5 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-xl flex items-center space-x-3 transition-all duration-300 transform translate-y-[-100px] opacity-0 pointer-events-none">
+        <i class="fa-solid id-toast-icon fa-circle-check text-xl"></i>
+        <span id="toast-message" class="font-semibold">Thành công!</span>
+    </div>
+
+    <!-- ================= CUSTOM CONFIRM MODAL (XÁC NHẬN TÙY CHỈNH) ================= -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center transform scale-95 transition-all duration-300">
+            <i class="fa-solid fa-circle-question text-amber-500 text-5xl mb-4"></i>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Xác nhận hành động</h3>
+            <p id="confirm-message" class="text-sm text-gray-500 mb-6">Bạn có chắc chắn muốn thực hiện hành động này không?</p>
+            <div class="flex space-x-3 justify-center">
+                <button onclick="closeConfirmModal(false)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">Hủy</button>
+                <button onclick="closeConfirmModal(true)" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= NAVBAR (THANH ĐIỀU HƯỚNG CĂN GIỮA) ================= -->
+    <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-100">
+        <div class="container mx-auto px-4 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
+            <!-- Logo (Căn trái) -->
+            <a href="#" onclick="showPage('homepage')" class="text-2xl font-black text-blue-600 tracking-wider flex-shrink-0">
+                TECH<span class="text-gray-900">STORE</span>
+            </a>
+            
+            <!-- Menu Navigation & Bộ Lọc (Căn giữa) -->
+            <nav class="flex items-center justify-center space-x-1 sm:space-x-3 flex-wrap lg:flex-1 w-full">
+                <button onclick="showPage('homepage'); filterCategory('all')" class="nav-link text-blue-600 font-bold px-3.5 py-2 rounded-xl hover:bg-gray-50 transition cursor-pointer text-sm">
+                    <i class="fa-solid fa-house mr-1"></i> Trang chủ</button>
+                <button onclick="showPage('homepage'); filterCategory('CPU')" class="nav-link text-gray-600 font-medium px-3.5 py-2 rounded-xl hover:bg-gray-50 transition cursor-pointer text-sm">
+                    CPU</button>
+				<button onclick="showPage('homepage'); filterCategory('Mainboard')" class="nav-link text-gray-600 font-medium px-3.5 py-2 rounded-xl hover:bg-gray-50 transition cursor-pointer text-sm">
+                    Mainboard</button>
+				<button onclick="showPage('homepage'); filterCategory('Bàn Phím')" class="nav-link text-gray-600 font-medium px-3.5 py-2 rounded-xl hover:bg-gray-50 transition cursor-pointer text-sm">
+                    Bàn Phím</button>
+				<button onclick="showPage('homepage'); filterCategory('MacBook')" class="nav-link text-gray-600 font-medium px-3.5 py-2 rounded-xl hover:bg-gray-50 transition cursor-pointer text-sm">
+                    MacBook
+                </button>
+                <button id="nav-admin-btn" onclick="showPage('admin-page')" class="nav-link text-gray-600 font-medium px-3.5 py-2 rounded-xl hover:bg-gray-50 transition cursor-pointer text-sm hidden">
+                    <i class="fa-solid fa-user-gear mr-1 text-blue-500"></i> Quản trị (Admin)
+                </button>
+            </nav>
+            
+            <!-- Tiện ích Giỏ Hàng & Auth (Căn phải) -->
+            <div class="flex items-center justify-end space-x-4 flex-shrink-0 w-full lg:w-auto">
+                <!-- Nút Giỏ Hàng -->
+                <div class="relative cursor-pointer hover:text-blue-600 transition p-2 bg-gray-50 hover:bg-blue-50 rounded-xl" onclick="openCartModal()">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
+                </div>
+
+                <!-- Phân đoạn Đăng nhập / Người dùng -->
+                <div id="nav-user-zone" class="border-l border-gray-200 pl-4 flex items-center space-x-3">
+                    <!-- Sẽ render động bằng JS dựa theo trạng thái đăng nhập -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= PHẦN NỘI DUNG CHÍNH ================= -->
+    <main class="flex-grow">
+        
+        <!-- ================= PAGE 1: TRANG CHỦ CỬA HÀNG ================= -->
+        <div id="homepage" class="page-section">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12 md:py-16 mb-8">
+                <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <span class="bg-blue-500 text-xs font-bold uppercase px-3 py-1 rounded-full tracking-wider">Chào mừng đến với TechStore</span>
+                        <h2 class="text-3xl md:text-5xl font-extrabold my-4 leading-tight">Trải Nghiệm Công Nghệ<br>Đột Phá Tương Lai</h2>
+                        <p class="text-blue-100 mb-6">Chuyên cung cấp linh kiện máy tính, máy tính, laptop chính hãng với chế độ bảo hành cực chất.</p>
+                        <a href="#product-section" class="bg-white text-blue-600 font-bold px-6 py-3 rounded-xl shadow-md hover:bg-gray-100 transition inline-block">Khám phá sản phẩm</a>
+                    </div>
+                    <div class="hidden md:block justify-self-center">
+                        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&auto=format&fit=crop&q=80" alt="Banner" class="rounded-2xl shadow-2xl max-w-sm h-64 object-cover">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khung Bộ Lọc & Tìm Kiếm -->
+            <div id="product-section" class="container mx-auto px-4 mb-8">
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <!-- Danh mục sản phẩm -->
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <button onclick="showPage('homepage'); filterCategory('all')" class="cat-btn bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer">Trang Chủ</button>
+                        <button onclick="showPage('homepage'); filterCategory('CPU')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">CPU</button>
+                        <button onclick="showPage('homepage'); filterCategory('Mainboard')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">Mainboard</button>
+						<button onclick="showPage('homepage'); filterCategory('Bàn Phím')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">Bàn Phím</button>	
+						<button onclick="showPage('homepage'); filterCategory('MacBook')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">MacBook</button>
+                        <button onclick="showPage('homepage'); filterSpecial('new')" class="cat-btn bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Mới ra mắt
+                        </button>
+                        <button onclick="showPage('homepage'); filterSpecial('promo')" class="cat-btn bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer">
+                            <i class="fa-solid fa-fire mr-1"></i> Siêu khuyến mãi
+                        </button>
+                    </div>
+                    <!-- Tìm kiếm sản phẩm -->
+                    <div class="relative w-full md:w-80">
+                        <input type="text" id="search-input" oninput="searchProducts()" placeholder="Tìm kiếm sản phẩm..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400 absolute right-3 top-3"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid hiển thị sản phẩm -->
+            <div class="container mx-auto px-4 pb-16">
+                <div class="mb-6 flex items-center justify-between">
+                    <h3 id="store-section-title" class="text-2xl font-black text-gray-900">Tất Cả Sản Phẩm</h3>
+                    <span id="store-section-count" class="text-xs bg-gray-100 text-gray-500 font-bold px-3 py-1 rounded-full border border-gray-200">0 sản phẩm</span>
+                </div>
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Javascript tự động render danh sách sản phẩm ở đây -->
+                </div>
+                <div id="no-products-msg" class="text-center py-16 hidden">
+                    <i class="fa-solid fa-box-open text-5xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">Không tìm thấy sản phẩm phù hợp.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 2: TRANG CHI TIẾT SẢN PHẨM ================= -->
+        <div id="detail-page" class="page-section hidden container mx-auto px-4 py-8">
+            <!-- Breadcrumb điều hướng -->
+            <div class="text-sm text-gray-500 mb-6 flex items-center space-x-2">
+                <button onclick="showPage('homepage')" class="hover:text-blue-600 cursor-pointer">Trang chủ</button>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                <span id="detail-breadcrumb-cat" class="text-gray-400">Danh mục</span>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                <span class="text-gray-400">Chi tiết sản phẩm</span>
+            </div>
+
+            <!-- Khung thông tin chi tiết -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-12 max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <!-- Vùng hình ảnh sản phẩm -->
+                    <div class="bg-gray-50 p-6 rounded-2xl flex items-center justify-center min-h-[300px]">
+                        <img id="detail-img" src="" alt="" class="max-h-96 object-contain rounded-xl mix-blend-multiply transition-all duration-300">
+                    </div>
+                    <!-- Vùng nội dung chữ -->
+                    <div class="flex flex-col justify-between">
+                        <div>
+                            <span id="detail-cat-tag" class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">Danh mục</span>
+                            <h2 id="detail-title" class="text-3xl font-bold text-gray-900 mt-4 mb-2">Tên sản phẩm</h2>
+                            <div class="flex items-center space-x-2 mb-4 text-amber-500 text-sm">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                <span class="text-gray-400 text-xs ml-2">(150 đánh giá tích cực)</span>
+                            </div>
+                            <p id="detail-price" class="text-3xl font-black text-red-500 mb-6">Giá tiền</p>
+                            
+                            <div class="border-t border-b border-gray-100 py-6 my-6">
+                                <h4 class="font-bold text-gray-900 mb-3">Mô tả sản phẩm:</h4>
+                                <p id="detail-desc" class="text-gray-600 text-sm leading-relaxed whitespace-pre-line"></p>
+                            </div>
+                        </div>
+
+                        <!-- Các nút mua hàng -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <button id="add-to-cart-btn" class="w-full bg-blue-50 border border-blue-200 text-blue-600 font-bold py-3.5 rounded-xl hover:bg-blue-100 transition cursor-pointer">
+                                <i class="fa-solid fa-cart-plus mr-2"></i>Thêm giỏ hàng
+                            </button>
+                            <button id="buy-now-btn" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 cursor-pointer">
+                                Mua ngay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 4: TRANG CON CHÍNH SÁCH (HỌC TẬP & DOANH NGHIỆP) ================= -->
+        <div id="policy-page" class="page-section hidden container mx-auto px-4 py-8">
+            <!-- Breadcrumb điều hướng -->
+            <div class="text-sm text-gray-500 mb-6 flex items-center space-x-2">
+                <button onclick="showPage('homepage')" class="hover:text-blue-600 cursor-pointer">Trang chủ</button>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                <span class="text-gray-400">Điều khoản chính sách</span>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                <span id="policy-breadcrumb-title" class="text-gray-900 font-medium">Chính sách</span>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-12 max-w-4xl mx-auto">
+                <div class="flex items-center space-x-4 mb-6 pb-4 border-b border-gray-100">
+                    <div id="policy-icon-wrapper" class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl">
+                        <i id="policy-header-icon" class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h2 id="policy-detail-title" class="text-2xl md:text-3xl font-black text-gray-950">Tiêu đề chính sách</h2>
+                        <p class="text-xs text-gray-400 mt-1">Cập nhật lần cuối: Tháng 06/2026 • Hệ thống phân phối TechStore</p>
+                    </div>
+                </div>
+
+                <!-- Vùng nạp nội dung chính sách từ JS -->
+                <div id="policy-detail-content" class="prose max-w-none text-gray-600 text-sm md:text-base leading-relaxed space-y-6">
+                    <!-- Sẽ render động nội dung chi tiết bằng Javascript -->
+                </div>
+
+                <!-- Nút quay về -->
+                <div class="mt-10 pt-6 border-t border-gray-100 flex justify-end">
+                    <button onclick="showPage('homepage')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition cursor-pointer flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-arrow-left"></i>
+                        <span>Quay lại Cửa hàng</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 3: TRANG QUẢN TRỊ ADMIN (BẢO MẬT) ================= -->
+        <div id="admin-page" class="page-section hidden container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-100 pb-4">
+                <div>
+                    <h2 class="text-3xl font-black text-gray-900">Bảng Quản Trị Hệ Thống</h2>
+                    <p class="text-gray-500 text-sm mt-1">Dành riêng cho giảng viên hướng dẫn và sinh viên kiểm thử.</p>
+                </div>
+                <!-- Tabs chuyển vùng quản lý -->
+                <div class="flex bg-gray-100 p-1.5 rounded-xl">
+                    <button onclick="switchAdminTab('products-tab')" id="admin-tab-products-btn" class="px-5 py-2 rounded-lg font-bold text-sm bg-white text-blue-600 shadow-sm transition cursor-pointer">
+                        <i class="fa-solid fa-box mr-1.5"></i>Sản phẩm
+                    </button>
+                    <button onclick="switchAdminTab('orders-tab')" id="admin-tab-orders-btn" class="px-5 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:text-gray-800 transition cursor-pointer">
+                        <i class="fa-solid fa-receipt mr-1.5"></i>Đơn hàng
+                        <span id="admin-pending-badge" class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+		    <button onclick="exportData()" id="admin-tab-orders-btn" class="px-5 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:text-gray-800 transition cursor-pointer">
+                        <i class="fa-solid fa-receipt mr-1.5"></i>Backup
+                        <span id="admin-pending-badge" class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span></button>
+		    <input type="file" id="importFile" onchange="importData(event)" class="hidden">
+<button onclick="document.getElementById('importFile').click()" id="admin-tab-orders-btn" class="px-5 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:text-gray-800 transition cursor-pointer">
+                        <i class="fa-solid fa-receipt mr-1.5"></i>khôi phục 
+                        <span id="admin-pending-badge" class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                </div>
+            </div>
+
+            <!-- TAB 1: QUẢN LÝ SẢN PHẨM -->
+            <div id="admin-products-tab" class="space-y-6">
+                <div class="flex justify-end">
+                    <button onclick="openAddForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-blue-600/20 transition cursor-pointer flex items-center">
+                        <i class="fa-solid fa-plus mr-2"></i> Thêm sản phẩm mới
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 font-semibold text-sm border-b border-gray-100">
+                                    <th class="p-4 pl-6">ID</th>
+                                    <th class="p-4">Ảnh</th>
+                                    <th class="p-4">Tên Sản Phẩm</th>
+                                    <th class="p-4">Danh Mục</th>
+                                    <th class="p-4">Đơn Giá</th>
+                                    <th class="p-4 text-right pr-6">Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-table-body" class="divide-y divide-gray-100 text-sm">
+                                <!-- Render tự động sản phẩm bằng JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: QUẢN LÝ ĐƠN HÀNG -->
+            <div id="admin-orders-tab" class="hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 font-semibold text-sm border-b border-gray-100">
+                                    <th class="p-4 pl-6">Mã Đơn</th>
+                                    <th class="p-4">Thông Tin Khách Hàng</th>
+                                    <th class="p-4">Chi Tiết Đơn Hàng</th>
+                                    <th class="p-4">Thành Tiền</th>
+                                    <th class="p-4">Trạng Thái</th>
+                                    <th class="p-4 text-right pr-6">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-orders-body" class="divide-y divide-gray-100 text-sm">
+                                <!-- Render tự động đơn hàng bằng JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= MODAL: GIỎ HÀNG & THANH TOÁN (CART MODAL) ================= -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform scale-95 transition-all duration-300 flex flex-col">
+            <!-- Header Modal -->
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                    <i class="fa-solid fa-cart-shopping text-blue-600 mr-2.5"></i>
+                    Giỏ hàng của bạn
+                </h3>
+                <button onclick="closeCartModal()" class="text-gray-400 hover:text-gray-600 transition cursor-pointer text-xl p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto p-6" id="cart-modal-body">
+                <!-- Bước 1: Xem giỏ hàng -->
+                <div id="cart-step-view">
+                    <div id="cart-items-container" class="space-y-4">
+                        <!-- Danh sách sản phẩm trong giỏ hàng sẽ render tại đây -->
+                    </div>
+                    <div id="cart-empty-state" class="text-center py-12 hidden">
+                        <i class="fa-solid fa-box-open text-5xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 font-medium">Giỏ hàng của bạn đang trống.</p>
+                        <button onclick="closeCartModal(); showPage('homepage')" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm cursor-pointer transition">
+                            Mua sắm ngay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bước 2: Điền thông tin đặt hàng -->
+                <div id="cart-step-checkout" class="hidden">
+                    <h4 class="font-bold text-gray-900 text-lg mb-4 border-b border-gray-100 pb-2">Thông Tin Nhận Hàng</h4>
+                    <form id="checkout-form" onsubmit="submitOrder(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Họ và tên khách hàng *</label>
+                            <input type="text" id="checkout-name" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Ví dụ: Nguyễn Văn A">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Số điện thoại liên hệ *</label>
+                                <input type="tel" id="checkout-phone" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Ví dụ: 0987654321">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Phương thức thanh toán *</label>
+                                <select id="checkout-payment" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition cursor-pointer">
+                                    <option value="Thanh toán khi nhận hàng (COD)">Thanh toán khi nhận hàng (COD)</option>
+                                    <option value="Chuyển khoản ngân hàng">Chuyển khoản ngân hàng (Qua Momo/VNPAY)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Địa chỉ giao hàng chi tiết *</label>
+                            <textarea id="checkout-address" required rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Nhập địa chỉ nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+                        </div>
+                        <button type="submit" class="hidden" id="hidden-checkout-submit"></button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50" id="cart-modal-footer">
+                <div class="text-center sm:text-left">
+                    <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Tổng cộng thành tiền:</span>
+                    <p id="cart-total-price" class="text-2xl font-black text-red-500">0 đ</p>
+                </div>
+                
+                <div class="flex space-x-3 w-full sm:w-auto justify-end">
+                    <!-- Nút quay lại bước 1 -->
+                    <button id="cart-back-btn" onclick="switchCartStep('view')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-2.5 rounded-xl transition cursor-pointer text-sm hidden">Quay lại</button>
+                    
+                    <!-- Nút sang bước 2 -->
+                    <button id="cart-next-btn" onclick="switchCartStep('checkout')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 transition cursor-pointer text-sm">
+                        Tiến hành đặt hàng
+                    </button>
+                    
+                    <!-- Nút xác nhận đặt hàng thực tế -->
+                    <button id="cart-submit-btn" onclick="triggerCheckoutForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-600/10 transition cursor-pointer text-sm hidden">
+                        Xác nhận đặt đơn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM / SỬA SẢN PHẨM ================= -->
+    <div id="product-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300">
+            <!-- Header Modal -->
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-900">Thêm Sản Phẩm Mới</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition cursor-pointer text-xl p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Form nội dung -->
+            <form id="product-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <!-- ID ẩn để phục vụ cho việc chỉnh sửa -->
+                <input type="hidden" id="form-product-id">
+
+                <!-- Tên sản phẩm -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Tên sản phẩm *</label>
+                    <input type="text" id="form-product-name" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Ví dụ: iPhone 15 Pro Max 256GB">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Giá sản phẩm -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Giá tiền bán hiện tại (VND) *</label>
+                        <input type="number" id="form-product-price" required min="0" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Ví dụ: 29490000">
+                    </div>
+                    <!-- Danh mục -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Danh mục *</label>
+                        <select id="form-product-cat" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition cursor-pointer">
+                            <option value="CPU">CPU</option>
+                            <option value="Mainboard">Mainboard</option>
+                            <option value="Bàn Phím">Bàn Phím</option>
+			    <option value="MacBook">MacBook</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Nhãn trạng thái đặc biệt & Giá gốc (Khuyến mãi) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                    <div>
+                        <label class="block text-xs font-bold text-blue-800 uppercase mb-2">Trạng thái nhãn hiển thị</label>
+                        <div class="flex flex-col space-y-2 pt-1">
+                            <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                                <input type="checkbox" id="form-product-is-new" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                <span class="text-gray-700 font-medium text-xs">Mới ra mắt (NEW)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm cursor-pointer">
+                                <input type="checkbox" id="form-product-is-promo" onchange="toggleOldPriceInput()" class="rounded text-rose-600 focus:ring-rose-500 w-4 h-4">
+                                <span class="text-gray-700 font-medium text-xs">Siêu khuyến mãi (Promo)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Giá gốc khi chưa giảm (VND)</label>
+                        <input type="number" id="form-product-old-price" min="0" disabled class="w-full bg-gray-200 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition" placeholder="Ví dụ: 34990000">
+                        <p class="text-[10px] text-gray-400 mt-1">Chỉ kích hoạt khi tích chọn "Siêu khuyến mãi". Giá gốc phải lớn hơn giá bán hiện tại.</p>
+                    </div>
+                </div>
+
+                <!-- Link ảnh từ mạng & Kéo thả tải ảnh -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Hình ảnh sản phẩm *</label>
+                    
+                    <!-- Vùng kéo thả hoặc nhấp chọn ảnh -->
+                    <div id="image-drag-zone" class="border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-2xl p-6 text-center cursor-pointer bg-gray-50 hover:bg-blue-50/20 transition-all duration-300 relative overflow-hidden group">
+                        <input type="file" id="form-product-file" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                        
+                        <!-- Trạng thái chưa chọn ảnh -->
+                        <div id="drag-zone-prompt" class="space-y-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 group-hover:text-blue-500 transition duration-300"></i>
+                            <p class="text-xs font-semibold text-gray-600">Kéo thả ảnh vào đây hoặc <span class="text-blue-600 group-hover:underline">nhấp để duyệt tệp</span></p>
+                            <p class="text-[10px] text-gray-400">Hỗ trợ PNG, JPG, JPEG, WEBP (Dưới 1.5MB)</p>
+                        </div>
+
+                        <!-- Trạng thái đã chọn ảnh (Xem trước) -->
+                        <div id="drag-zone-preview" class="hidden flex flex-col items-center space-y-2 relative">
+                            <img id="form-image-preview-src" src="" alt="Xem trước" class="max-h-32 object-contain rounded-lg">
+                            <button type="button" onclick="clearSelectedImage(event)" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:scale-105 transition cursor-pointer z-10" title="Xóa ảnh này">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lựa chọn nhập URL dự phòng bên dưới -->
+                    <div class="mt-3">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase">Hoặc liên kết ảnh (URL)</span>
+                            <button type="button" onclick="toggleUrlInput(event)" class="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer">Hiện ô nhập URL</button>
+                        </div>
+                        <input type="text" id="form-product-img" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500 focus:bg-white transition hidden" placeholder="Nhập link ảnh https://..." oninput="handleUrlInput(this.value)">
+                    </div>
+                </div>
+
+                <!-- Mô tả chi tiết -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Mô tả sản phẩm *</label>
+                    <textarea id="form-product-desc" required rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Nhập mô tả chi tiết các thông số kỹ thuật, bảo hành..."></textarea>
+                </div>
+
+                <!-- Nút thao tác -->
+                <div class="pt-4 border-t border-gray-100 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-4 py-2.5 rounded-xl transition cursor-pointer text-sm">Hủy</button>
+                    <button type="submit" id="submit-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-blue-600/10 transition cursor-pointer text-sm">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ĐĂNG NHẬP / ĐĂNG KÝ (AUTH) ================= -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-all duration-300">
+            <!-- Header có thể chuyển Tab -->
+            <div class="flex border-b border-gray-100 bg-gray-50">
+                <button onclick="switchAuthTab('login')" id="tab-btn-login" class="w-1/2 py-4 text-center font-bold text-blue-600 border-b-2 border-blue-600 transition cursor-pointer">
+                    Đăng Nhập
+                </button>
+                <button onclick="switchAuthTab('register')" id="tab-btn-register" class="w-1/2 py-4 text-center font-medium text-gray-500 hover:text-gray-800 transition cursor-pointer">
+                    Tạo Tài Khoản
+                </button>
+            </div>
+
+            <!-- Form Đăng Nhập -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="p-6 space-y-4">
+                <p class="text-xs text-gray-400 mb-2">Tài khoản demo: <span class="font-semibold text-gray-700">admin / admin123</span></p>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Tên Đăng Nhập *</label>
+                    <div class="relative">
+                        <input type="text" id="login-username" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Nhập tên đăng nhập...">
+                        <i class="fa-solid fa-user text-gray-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Mật Khẩu *</label>
+                    <div class="relative">
+                        <input type="password" id="login-password" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Nhập mật khẩu...">
+                        <i class="fa-solid fa-lock text-gray-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeAuthModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition cursor-pointer text-sm">Hủy bỏ</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/10 transition cursor-pointer text-sm">Đăng nhập</button>
+                </div>
+            </form>
+
+            <!-- Form Đăng Ký -->
+            <form id="register-form" onsubmit="handleRegister(event)" class="p-6 space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Họ Và Tên *</label>
+                    <div class="relative">
+                        <input type="text" id="register-name" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Ví dụ: Nguyễn Văn A">
+                        <i class="fa-solid fa-address-card text-gray-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Tên Đăng Nhập *</label>
+                    <div class="relative">
+                        <input type="text" id="register-username" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Tên đăng nhập không dấu...">
+                        <i class="fa-solid fa-user text-gray-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Mật Khẩu *</label>
+                    <div class="relative">
+                        <input type="password" id="register-password" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Tối thiểu 6 ký tự...">
+                        <i class="fa-solid fa-key text-gray-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Xác Nhận Mật Khẩu *</label>
+                    <div class="relative">
+                        <input type="password" id="register-confirm-password" required class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition" placeholder="Nhập lại mật khẩu khớp phía trên...">
+                        <i class="fa-solid fa-circle-check text-gray-400 absolute left-3.5 top-3.5"></i>
+                    </div>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeAuthModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition cursor-pointer text-sm">Hủy bỏ</button>
+                    <button type="submit" class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-600/10 transition cursor-pointer text-sm">Đăng ký ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <footer class="bg-slate-900 text-slate-400 text-sm py-16 mt-auto border-t border-slate-700">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            
+            <!-- Cột 1:  -->
+            <div class="space-y-4">
+                <h4 class="text-white font-black text-xl tracking-wider">TECH<span class="text-blue-500">STORE</span></h4>
+                <p class="leading-relaxed text-slate-400 text-xs md:text-sm">
+                    Hệ thống bán lẻ thiết bị công nghệ chính hãng hàng đầu. Chúng tôi luôn cam kết đem lại các sản phẩm đỉnh cao cùng chính sách hậu mãi xuất sắc nhất cho mọi khách hàng.
+                </p>
+                <!-- Biểu tượng MXH -->
+                <div class="flex space-x-3 pt-2">
+                    <a href="#" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-blue-600 hover:text-white flex items-center justify-center transition"><i class="fa-brands fa-facebook-f text-sm"></i></a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-red-600 hover:text-white flex items-center justify-center transition"><i class="fa-brands fa-youtube text-sm"></i></a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-pink-600 hover:text-white flex items-center justify-center transition"><i class="fa-brands fa-instagram text-sm"></i></a>
+                    <a href="#" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-black hover:text-white flex items-center justify-center transition"><i class="fa-brands fa-tiktok text-sm"></i></a>
+                </div>
+                <!-- Huy hiệu chứng nhận Bộ Công Thương & SSL -->
+                <div class="flex items-center space-x-2 pt-3">
+                    <div class="bg-red-600/10 text-red-500 border border-red-500/30 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Đã Thông Báo BCT</span>
+                    </div>
+                    <div class="bg-emerald-600/10 text-emerald-500 border border-emerald-500/30 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>SSL Secure</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột 2:  -->
+            <div class="space-y-4">
+                <h4 class="text-white font-bold text-base tracking-wide border-b border-slate-800 pb-2">Danh Mục Hot</h4>
+                <ul class="space-y-2 text-xs md:text-sm">
+                    <li><a href="#" onclick="showPage('homepage'); filterCategory('CPU'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-chevron-right text-[10px] mr-1.5 text-blue-500"></i>CPU</a></li>
+                    <li><a href="#" onclick="showPage('homepage'); filterCategory('Mainboard'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-chevron-right text-[10px] mr-1.5 text-blue-500"></i>Mainboard</a></li>
+                    <li><a href="#" onclick="showPage('homepage'); filterCategory('Bàn Phím'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-chevron-right text-[10px] mr-1.5 text-blue-500"></i>Bàn Phím</a></li>
+					<li><a href="#" onclick="showPage('homepage'); filterCategory('macbook'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-chevron-right text-[10px] mr-1.5 text-blue-500"></i>macbook</a></li>
+                    <li><a href="#" onclick="showPage('homepage'); filterSpecial('new'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-chevron-right text-[10px] mr-1.5 text-blue-500"></i>Sản phẩm mới ra mắt <span class="ml-1 bg-amber-500 text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider scale-90 inline-block">New</span></a></li>
+                    <li><a href="#" onclick="showPage('homepage'); filterSpecial('promo'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-chevron-right text-[10px] mr-1.5 text-blue-500"></i>Chương trình siêu khuyến mãi <span class="ml-1 bg-red-600 text-white font-bold text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider scale-90 inline-block">Hot Sale</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 3:  -->
+            <div class="space-y-4">
+                <h4 class="text-white font-bold text-base tracking-wide border-b border-slate-800 pb-2">Chính Sách</h4>
+                <ul class="space-y-2 text-xs md:text-sm">
+                    <li><a href="#" onclick="viewPolicy('warranty'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-shield-cat text-[11px] mr-1.5 text-blue-500"></i>Chính sách bảo hành vàng</a></li>
+                    <li><a href="#" onclick="viewPolicy('shipping'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-truck-fast text-[11px] mr-1.5 text-blue-500"></i>Chính sách vận chuyển hoả tốc</a></li>
+                    <li><a href="#" onclick="viewPolicy('return'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-rotate-left text-[11px] mr-1.5 text-blue-500"></i>Chính sách đổi trả 1 đổi 1</a></li>
+                    <li><a href="#" onclick="viewPolicy('installment'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-hand-holding-dollar text-[11px] mr-1.5 text-blue-500"></i>Chính sách mua trả góp 0%</a></li>
+                    <li><a href="#" onclick="viewPolicy('privacy'); return false;" class="hover:text-white transition block"><i class="fa-solid fa-user-shield text-[11px] mr-1.5 text-blue-500"></i>Chính sách bảo mật dữ liệu</a></li>
+                </ul>
+            </div>
+            <!-- Cột 4:  -->
+            <div class="space-y-4">
+                <h4 class="text-white font-bold text-base tracking-wide border-b border-slate-800 pb-2">Liên Hệ & Thanh Toán</h4>
+                <div class="space-y-2 text-xs md:text-sm">
+                    <p class="flex items-start"><i class="fa-solid fa-headset mr-2 mt-0.5 text-blue-500 flex-shrink-0"></i><span>Hotline hỗ trợ: <strong class="text-white">0704788771</strong> (08:00 - 22:00)</span></p>
+                    <p class="flex items-start"><i class="fa-solid fa-envelope mr-2 mt-0.5 text-blue-500 flex-shrink-0"></i><span>Email: support@techstore.com</span></p>
+			</div>
+				
+                <!-- Logo các đối tác thanh toán -->
+                <div class="pt-2">
+                    <span class="block text-slate-500 text-[10px] uppercase font-bold tracking-wider mb-2">Hỗ trợ thanh toán</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="bg-slate-800 text-slate-300 px-2 py-1 rounded text-[10px] font-mono border border-slate-700 flex items-center"><i class="fa-brands fa-cc-visa text-blue-400 mr-1"></i>VISA</span>
+                        <span class="bg-slate-800 text-slate-300 px-2 py-1 rounded text-[10px] font-mono border border-slate-700">MOMO</span>
+                        <span class="bg-slate-800 text-slate-300 px-2 py-1 rounded text-[10px] font-mono border border-slate-700">VNPAY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bản quyền chân trang -->
+        <div class="border-t border-slate-800 mt-12 pt-6 text-center text-xs text-slate-500">
+            <div class="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p>&copy; 2026. Lưu Quốc Bảo Lớp: THUD24.4</p>
+                <div class="flex items-center space-x-4">
+                <span class="flex items-center text-slate-400"><i class="fa-solid fa-calendar-days mr-1.5"></i> Niên khóa: 2025 - 2026</span></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= SCRIPT XỬ LÝ TOÀN BỘ WEBSITE ================= -->
+    <script>
+        // Mảng sản phẩm mặc định làm cơ sở dữ liệu ban đầu
+        const defaultProducts = [
+            {
+                id: 1,
+                name: "iPhone 15 Pro Max 256GB - Bản Titan Tự Nhiên",
+                price: 29490000,
+                oldPrice: 34990000,
+                category: "Điện thoại",
+                isNew: false,
+                isPromo: true,
+                img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&auto=format&fit=crop&q=80",
+                desc: "Siêu phẩm điện thoại tối tân của nhà Apple với khung viền Titan siêu bền, siêu nhẹ. Chip A17 Pro đem lại tốc độ xử lý đỉnh cao cho mọi tác vụ đồ hoạ và gaming. Camera zoom quang học 5x cực đỉnh."
+            },
+            {
+                id: 2,
+                name: "MacBook Air M3 (8GB RAM / 256GB SSD)",
+                price: 27190000,
+                oldPrice: null,
+                category: "Laptop",
+                isNew: true,
+                isPromo: false,
+                img: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80",
+                desc: "Dòng Macbook Air nâng tầm sức mạnh đột phá với chip M3. Thiết kế mỏng cánh tuyệt đẹp, siêu nhẹ dễ di chuyển, hỗ trợ làm việc đa tác vụ mượt mà, thời lượng pin sử dụng suốt cả ngày dài."
+            },
+            {
+                id: 3,
+                name: "Tai nghe chống ồn AirPods Pro 2 - Sạc USB-C",
+                price: 5490000,
+                oldPrice: 6190000,
+                category: "Phụ kiện",
+                isNew: false,
+                isPromo: true,
+                img: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&auto=format&fit=crop&q=80",
+                desc: "Đỉnh cao âm thanh không dây với chip H2 thông minh. Hệ thống chống ồn chủ động ANC được cải tiến gấp 2 lần. Chế độ âm thanh thích ứng tự động hoà nhịp cùng môi trường sống xung quanh."
+            },
+            {
+                id: 4,
+                name: "Chuột Gaming Không Dây Siêu Nhẹ",
+                price: 1850000,
+                oldPrice: 2200000,
+                category: "Phụ kiện",
+                isNew: false,
+                isPromo: true,
+                img: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=500&auto=format&fit=crop&q=80",
+                desc: "Sản phẩm chuột chơi game thiết kế chuẩn công thái học chuyên nghiệp. Sử dụng mắt cảm biến quang học cao cấp cực kỳ nhạy bén, phản hồi siêu nhanh, độ bền nút click tới hàng triệu lần nhấn."
+            },
+            {
+                id: 5,
+                name: "iPad Pro M4 Ultra Thin 256GB WiFi",
+                price: 28990000,
+                oldPrice: null,
+                category: "Điện thoại",
+                isNew: true,
+                isPromo: false,
+                img: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500&auto=format&fit=crop&q=80",
+                desc: "Dòng iPad mỏng nhất lịch sử tích hợp vi xử lý Apple M4 đột phá vượt trội. Màn hình Ultra Retina XDR sử dụng công nghệ OLED 2 lớp hiển thị đỉnh cao sắc sảo từng gam màu."
+            },
+            {
+                id: 6,
+                name: "Sạc dự phòng không dây MagSafe Anker 10000mAh",
+                price: 1190000,
+                oldPrice: 1590000,
+                category: "Phụ kiện",
+                isNew: true,
+                isPromo: true,
+                img: "https://images.unsplash.com/photo-1609592424109-dd776735e5d1?w=500&auto=format&fit=crop&q=80",
+                desc: "Trạm năng lượng di động siêu nhỏ gọn tương thích sạc hít nam châm MagSafe siêu bền. Hỗ trợ sạc nhanh tiện lợi cùng chân đứng gập gọn xem video rảnh tay."
+            }
+        ];
+
+        // Dữ liệu tài khoản mặc định (Admin và Tài khoản thường test)
+        const defaultUsers = [
+            {
+                username: "admin",
+                password: "admin123",
+                name: "Quản Trị Viên",
+                role: "admin"
+            },
+            {
+                username: "user",
+                password: "123",
+                name: "Khách Mua Hàng",
+                role: "user"
+            }
+        ];
+
+        // Dữ liệu chính sách phong phú chuẩn doanh nghiệp
+        const policyDatabase = {
+            warranty: {
+                title: "Chính Sách Bảo Hành Vàng (Gold Warranty)",
+                icon: "fa-shield-cat",
+                content: `
+                    <div class="space-y-4 text-slate-700">
+                        <p class="font-semibold text-lg text-blue-600">Bảo Hành Vàng là gì?</p>
+                        <p>Chương trình <strong>Bảo Hành Vàng</strong> là gói dịch vụ độc quyền tại TechStore nhằm mang lại sự an tâm tuyệt đối cho khách hàng khi sở hữu các thiết bị công nghệ đắt tiền như iPhone, iPad, MacBook.</p>
+                        
+                        <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 space-y-2">
+                            <p class="font-bold text-blue-800"><i class="fa-solid fa-star mr-2"></i>QUYỀN LỢI ĐẶC BIỆT CỦA GÓI BẢO HÀNH VÀNG:</p>
+                            <ul class="list-disc pl-5 space-y-1 text-sm text-blue-900">
+                                <li>Bảo hành toàn diện cả nguồn, màn hình, sọc màn hình, camera và rơi vỡ kính (Gói bảo hành thường thường loại trừ các lỗi này).</li>
+                                <li><strong>1 đổi 1 trong vòng 12 tháng</strong> nếu phát sinh lỗi từ nhà sản xuất.</li>
+                                <li>Hỗ trợ thiết bị dùng tạm (máy backup) có cấu hình tương đương trong suốt quá trình sửa chữa.</li>
+                            </ul>
+                        </div>
+
+                        <p class="font-semibold text-lg text-blue-600 mt-6">Điều Kiện Áp Dụng Bảo Hành:</p>
+                        <ol class="list-decimal pl-5 space-y-2">
+                            <li>Thiết bị phải nằm trong thời hạn bảo hành được ghi nhận trên hệ thống điện tử của TechStore.</li>
+                            <li>Số Serial/IMEI trên máy phải trùng khớp hoàn toàn với số lưu trữ trên hệ thống bán hàng.</li>
+                            <li>Thiết bị không bị can thiệp phần cứng hoặc tự ý sửa chữa tại các cơ sở không thuộc hệ thống TechStore.</li>
+                        </ol>
+
+                        <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100 space-y-1 text-amber-900 text-sm">
+                            <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Các trường hợp loại trừ (Từ chối bảo hành):</p>
+                            <p>Không áp dụng với máy bị dính iCloud ẩn, có dấu hiệu ngấm nước sâu dẫn tới rỉ sét mainboard hoặc các tổn hại nghiêm trọng do hỏa hoạn, thiên tai gây ra.</p>
+                        </div>
+                    </div>
+                `
+            },
+            shipping: {
+                title: "Chính Sách Vận Chuyển Hỏa Tốc",
+                icon: "fa-truck-fast",
+                content: `
+                    <div class="space-y-4 text-slate-700">
+                        <p class="font-semibold text-lg text-blue-600">Dịch Vụ Giao Hàng Hỏa Tốc 2H</p>
+                        <p>Nhằm đáp ứng tối đa nhu cầu sở hữu thiết bị công nghệ ngay lập tức của khách hàng, TechStore cung cấp giải pháp giao hàng siêu nhanh chóng.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                <h5 class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-clock mr-2 text-blue-500"></i>Giao hàng nội thành (2 Giờ)</h5>
+                                <p class="text-xs">Áp dụng cho các khu vực thuộc nội thành Hà Nội và TP. Hồ Chí Minh với khoảng cách dưới 15km tính từ Showroom gần nhất.</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                <h5 class="font-bold text-slate-900 mb-1"><i class="fa-solid fa-map-location-dot mr-2 text-blue-500"></i>Giao hàng liên tỉnh (1 - 3 Ngày)</h5>
+                                <p class="text-xs">Chuyển phát bảo đảm thông qua các đơn vị đối tác uy tín như Viettel Post, GHTK, hỗ trợ đồng kiểm nhận hàng trước khi thanh toán.</p>
+                            </div>
+                        </div>
+
+                        <p class="font-semibold text-lg text-blue-600 mt-6">Biểu Phí Vận Chuyển:</p>
+                        <ul class="list-disc pl-5 space-y-1.5">
+                            <li><strong>Miễn phí vận chuyển:</strong> Áp dụng cho mọi đơn hàng có giá trị thanh toán thực tế từ <strong>10.000.000 đ</strong> trở lên.</li>
+                            <li><strong>Giao hàng hỏa tốc 2H:</strong> Đồng giá 50.000 đ cho mỗi chuyến giao dịch nội thành.</li>
+                            <li><strong>Giao hàng tiêu chuẩn:</strong> Đồng giá 30.000 đ trên phạm vi toàn quốc.</li>
+                        </ul>
+
+                        <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-sm">
+                            <p class="font-bold text-blue-900 mb-1"><i class="fa-solid fa-circle-info mr-2"></i>Lưu ý khi nhận hàng:</p>
+                            <p class="text-blue-900">Quý khách vui lòng kiểm tra kỹ niêm phong, tem chống hàng giả của TechStore dán trên hộp sản phẩm trước khi ký nhận từ nhân viên chuyển phát. Nếu có dấu hiệu rách, móp, xin vui lòng từ chối nhận hàng và liên hệ Hotline 1900 6688.</p>
+                        </div>
+                    </div>
+                `
+            },
+            return: {
+                title: "Chính Sách Đổi Trả 1 Đổi 1 Trong 30 Ngày",
+                icon: "fa-rotate-left",
+                content: `
+                    <div class="space-y-4 text-slate-700">
+                        <p class="font-semibold text-lg text-blue-600">Quy Định Đổi Trả Linh Hoạt</p>
+                        <p>Với triết lý đặt khách hàng làm trung tâm, TechStore áp dụng chính sách dùng thử và đổi mới cực kỳ thông thoáng để bảo vệ quyền lợi mua sắm tối đa cho quý khách.</p>
+                        
+                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-900 text-sm space-y-2">
+                            <p class="font-bold"><i class="fa-solid fa-check-double mr-2"></i>QUY TRÌNH 1 ĐỔI 1 DỄ DÀNG:</p>
+                            <p>Trong vòng 30 ngày kể từ ngày mua, nếu sản phẩm có bất cứ lỗi kỹ thuật nào do nhà sản xuất (như điểm chết màn hình, lỗi loa rè, camera không lấy nét, pin sụt bất thường...), TechStore cam kết đổi ngay một máy mới nguyên seal cùng phiên bản cho quý khách.</p>
+                        </div>
+
+                        <p class="font-semibold text-lg text-blue-600 mt-6">Điều Kiện Đổi Trả Hợp Lệ:</p>
+                        <ol class="list-decimal pl-5 space-y-2 text-sm">
+                            <li>Sản phẩm đổi trả phải giữ nguyên hình dạng ban đầu, không bị trầy xước, cấn móp, nứt vỡ hoặc biến dạng phần ngoại quan.</li>
+                            <li>Sản phẩm phải đầy đủ vỏ hộp trùng IMEI, sách hướng dẫn, bộ sạc, cáp kết nối và các quà tặng khuyến mãi đi kèm (nếu có).</li>
+                            <li>Có hóa đơn mua hàng kiêm phiếu xuất kho điện tử của TechStore.</li>
+                        </ol>
+
+                        <p class="font-semibold text-lg text-blue-600 mt-6">Quy Trình Đổi Trả Gồm 3 Bước:</p>
+                        <div class="relative pl-6 border-l-2 border-blue-500 space-y-4 text-sm">
+                            <div>
+                                <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border border-white"></span>
+                                <p class="font-bold text-slate-900">Bước 1: Tiếp nhận thông tin</p>
+                                <p>Quý khách gọi đến Hotline 1900 6688 hoặc đến trực tiếp Showroom để kỹ thuật viên kiểm tra lỗi sơ bộ.</p>
+                            </div>
+                            <div>
+                                <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border border-white"></span>
+                                <p class="font-bold text-slate-900">Bước 2: Giám định kỹ thuật</p>
+                                <p>Bộ phận kỹ thuật tiến hành đo đạc, kiểm tra thông số máy trong thời gian nhanh nhất từ 15 - 30 phút.</p>
+                            </div>
+                            <div>
+                                <span class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-500 border border-white"></span>
+                                <p class="font-bold text-slate-900">Bước 3: Thực hiện đổi mới</p>
+                                <p>Nhân viên tiến hành mở seal, kiểm tra ngoại quan máy mới cùng quý khách và hoàn tất thủ tục bàn giao sản phẩm thay thế.</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            installment: {
+                title: "Chính Sách Mua Trả Góp Lãi Suất 0%",
+                icon: "fa-hand-holding-dollar",
+                content: `
+                    <div class="space-y-4 text-slate-700">
+                        <p class="font-semibold text-lg text-blue-600">Sở Hữu Công Nghệ Đỉnh Cao Dễ Dàng</p>
+                        <p>Nhằm giảm bớt áp lực tài chính cho quý khách hàng, đặc biệt là các bạn sinh viên, TechStore phối hợp cùng các tổ chức tài chính lớn cung cấp giải pháp mua sắm trả góp lãi suất 0%.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                                <h5 class="font-bold text-emerald-900 mb-1"><i class="fa-solid fa-credit-card mr-2"></i>Qua Thẻ Tín Dụng (Credit Card)</h5>
+                                <p class="text-xs text-emerald-800">Hỗ trợ trả góp 0% lãi suất của hơn 25 ngân hàng uy tín toàn quốc. Kỳ hạn linh hoạt từ 3, 6, 9 đến 12 tháng. Không cần chứng minh thu nhập, duyệt hồ sơ trong 5 phút trực tuyến.</p>
+                            </div>
+                            <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                                <h5 class="font-bold text-blue-900 mb-1"><i class="fa-solid fa-id-card mr-2"></i>Qua Công Ty Tài Chính (Home Credit/HD Saison)</h5>
+                                <p class="text-xs text-blue-800">Chỉ cần thẻ căn cước công dân gắn chip (CCCD). Chỉ cần trả trước từ 10% giá trị sản phẩm. Kỳ hạn thanh toán hàng tháng kéo dài linh động từ 6 đến 18 tháng.</p>
+                            </div>
+                        </div>
+
+                        <p class="font-semibold text-lg text-blue-600 mt-6">Hồ Sơ Yêu Cầu Đối Với Trả Góp CCCD:</p>
+                        <ul class="list-disc pl-5 space-y-1.5 text-sm">
+                            <li>Độ tuổi từ 18 đến 60 tuổi tính theo ngày tháng năm sinh trên giấy tờ tùy thân.</li>
+                            <li>Bản gốc CCCD gắn chip còn hạn sử dụng (Chụp hình đối chiếu trực tiếp tại quầy, hoàn trả ngay cho khách).</li>
+                            <li>Không có nợ xấu thuộc các nhóm nguy cơ từ CIC của hệ thống ngân hàng nhà nước Việt Nam.</li>
+                        </ul>
+                    </div>
+                `
+            },
+            privacy: {
+                title: "Chính Sách Bảo Mật Dữ Liệu Khách Hàng",
+                icon: "fa-user-shield",
+                content: `
+                    <div class="space-y-4 text-slate-700">
+                        <p class="font-semibold text-lg text-blue-600">Cam Kết Bảo Mật Thông Tin</p>
+                        <p>TechStore luôn thấu hiểu tầm quan trọng của việc bảo vệ thông tin cá nhân khách hàng. Chúng tôi cam kết tuyệt đối tuân thủ các quy chuẩn an toàn bảo mật thông tin quốc tế và Luật an ninh mạng Việt Nam.</p>
+                        
+                        <p class="font-semibold text-lg text-blue-600 mt-6">1. Phạm vi thu thập thông tin:</p>
+                        <p class="text-sm">Chúng tôi chỉ thu thập các thông tin cơ bản liên quan đến giao dịch và vận chuyển bao gồm: Họ và tên, số điện thoại, địa chỉ giao nhận hàng, địa chỉ email phục vụ xuất hóa đơn điện tử.</p>
+
+                        <p class="font-semibold text-lg text-blue-600 mt-6">2. Mục đích sử dụng dữ liệu:</p>
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
+                            <li>Xử lý và bàn giao đơn đặt hàng sản phẩm công nghệ đến đúng địa chỉ yêu cầu.</li>
+                            <li>Liên hệ tư vấn, giải đáp thắc mắc dịch vụ và hỗ trợ kỹ thuật bảo hành dài hạn.</li>
+                            <li>Cập nhật các chương trình khuyến mãi, ưu đãi tri ân thành viên TechStore (nếu được sự đồng ý trước của khách).</li>
+                        </ul>
+
+                        <div class="p-4 bg-slate-900 text-slate-300 rounded-2xl border border-slate-800 text-xs font-mono space-y-1.5">
+                            <p class="text-emerald-400 font-bold"><i class="fa-solid fa-lock mr-2"></i>SSL SECURITY ENCRYPTION PROTCOLS (256-BIT):</p>
+                            <p>Mọi kết nối thanh toán và lưu trữ dữ liệu người dùng tại TechStore đều được mã hóa mật mã đối xứng cấp độ cao SSL, ngăn chặn triệt để mọi nguy cơ đánh cắp thông tin hoặc xâm nhập trái phép từ hacker.</p>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        // Biến toàn cục quản lý danh sách sản phẩm, bộ lọc, giỏ hàng, thông tin tài khoản
+        let products = [];
+        let users = [];
+        let cart = []; // Mảng chứa sản phẩm trong giỏ hàng: { id, name, price, img, quantity }
+        let orders = []; // Mảng chứa thông tin đơn hàng đã đặt
+        let currentUser = null; // null có nghĩa chưa đăng nhập
+        let currentCategory = 'all';
+        let specialFilter = null; // 'new' | 'promo' | null
+        let activeAdminTab = 'products-tab';
+
+        // Biến callback cho Modal xác nhận tùy chỉnh
+        let confirmActionCallback = null;
+
+        // Khởi động khi trang web tải xong
+        window.onload = function() {
+            // 1. Tải danh sách sản phẩm
+            const storedProducts = localStorage.getItem('techstore_products');
+            if (storedProducts) {
+                products = JSON.parse(storedProducts);
+            } else {
+                products = defaultProducts;
+                saveToLocalStorage('techstore_products', products);
+            }
+
+            // 2. Tải danh sách tài khoản người dùng
+            const storedUsers = localStorage.getItem('techstore_users');
+            if (storedUsers) {
+                users = JSON.parse(storedUsers);
+            } else {
+                users = defaultUsers;
+                saveToLocalStorage('techstore_users', users);
+            }
+
+            // 3. Tải trạng thái đăng nhập hiện tại
+            const storedCurrentUser = localStorage.getItem('techstore_current_user');
+            if (storedCurrentUser) {
+                currentUser = JSON.parse(storedCurrentUser);
+            }
+
+            // 4. Tải giỏ hàng & Đơn hàng đã lưu
+            const storedCart = localStorage.getItem('techstore_cart');
+            if (storedCart) {
+                cart = JSON.parse(storedCart);
+            }
+            const storedOrders = localStorage.getItem('techstore_orders');
+            if (storedOrders) {
+                orders = JSON.parse(storedOrders);
+            }
+
+            updateCartBadge();
+            renderUserZone();
+            renderStore();
+            renderAdminTable();
+            renderAdminOrders();
+            updatePendingBadge();
+        };
+
+        // Lưu thông tin vào LocalStorage gọn gàng
+        function saveToLocalStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // Định dạng số thành tiền tệ VND (Ví dụ: 29000000 -> 29.000.000 đ)
+        function formatVND(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        // Hiện thông báo Popup Toast với phân loại (Success, Error)
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = toast.querySelector('.id-toast-icon');
+            toastMsg.innerText = message;
+            
+            if (type === 'error') {
+                toast.classList.replace('bg-emerald-600', 'bg-rose-600');
+                toastIcon.classList.replace('fa-circle-check', 'fa-circle-exclamation');
+            } else {
+                toast.classList.replace('bg-rose-600', 'bg-emerald-600');
+                toastIcon.classList.replace('fa-circle-exclamation', 'fa-circle-check');
+            }
+
+            toast.classList.add('toast-active');
+            setTimeout(() => {
+                toast.classList.remove('toast-active');
+            }, 3000);
+        }
+
+        // ================= CONFIRM MODAL TỰ CHẾ =================
+        function showCustomConfirm(message, callback) {
+            document.getElementById('confirm-message').innerText = message;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            confirmActionCallback = callback;
+        }
+
+        function closeConfirmModal(isConfirmed) {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            if (isConfirmed && confirmActionCallback) {
+                confirmActionCallback();
+            }
+            confirmActionCallback = null;
+        }
+
+        // Chuyển đổi qua lại giữa các trang chính (Home, Chi tiết, Admin, Chính sách)
+        function showPage(pageId) {
+            // Kiểm tra phân quyền truy cập trang Admin
+            if (pageId === 'admin-page') {
+                if (!currentUser) {
+                    showToast("Bạn cần đăng nhập tài khoản quản trị để vào khu vực Admin!", "error");
+                    openAuthModal('login');
+                    return;
+                }
+                if (currentUser.role !== 'admin') {
+                    showToast("Tài khoản của bạn không có quyền Quản trị viên!", "error");
+                    return;
+                }
+            }
+
+            document.querySelectorAll('.page-section').forEach(page => {
+                page.classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+
+            // Cập nhật trạng thái Active trên Menu Nav
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-blue-600', 'font-bold');
+                link.classList.add('text-gray-600', 'font-medium');
+            });
+
+            if (pageId === 'homepage') {
+                document.querySelectorAll('.nav-link')[0].classList.add('text-blue-600', 'font-bold');
+            } else if (pageId === 'admin-page') {
+                document.getElementById('nav-admin-btn').classList.add('text-blue-600', 'font-bold');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Hàm nạp dữ liệu chính sách động dựa trên lựa chọn click
+        function viewPolicy(policyKey) {
+            const policy = policyDatabase[policyKey];
+            if (!policy) return;
+
+            document.getElementById('policy-breadcrumb-title').innerText = policy.title;
+            document.getElementById('policy-detail-title').innerText = policy.title;
+            document.getElementById('policy-detail-content').innerHTML = policy.content;
+            
+            // Đổi biểu tượng icon tương ứng
+            const iconEl = document.getElementById('policy-header-icon');
+            iconEl.className = `fa-solid ${policy.icon}`;
+
+            showPage('policy-page');
+        }
+
+        // ================= XỬ LÝ ĐĂNG NHẬP / ĐĂNG KÝ (AUTH) =================
+
+        // Cập nhật giao diện Đăng nhập / Đăng xuất ở góc phải trên Navbar
+        function renderUserZone() {
+            const userZone = document.getElementById('nav-user-zone');
+            const adminBtn = document.getElementById('nav-admin-btn');
+
+            if (currentUser) {
+                userZone.innerHTML = `
+                    <div class="flex items-center space-x-3 text-sm flex-wrap">
+                        <span class="text-gray-700 font-semibold hidden sm:inline">Chào, <span class="text-blue-600">${currentUser.name}</span></span>
+                        <button onclick="handleLogout()" class="bg-gray-100 hover:bg-rose-50 hover:text-rose-600 text-gray-700 font-medium px-3 py-1.5 rounded-lg transition cursor-pointer text-xs">
+                            <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Đăng xuất
+                        </button>
+                    </div>
+                `;
+                if (currentUser.role === 'admin') {
+                    adminBtn.classList.remove('hidden');
+                } else {
+                    adminBtn.classList.add('hidden');
+                }
+            } else {
+                userZone.innerHTML = `
+                    <button onclick="openAuthModal('login')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition cursor-pointer shadow-md shadow-blue-600/10 flex items-center">
+                        <i class="fa-solid fa-arrow-right-to-bracket mr-1.5"></i> Đăng nhập
+                    </button>
+                `;
+                adminBtn.classList.add('hidden');
+            }
+        }
+
+        function openAuthModal(tab = 'login') {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            switchAuthTab(tab);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const tabLogin = document.getElementById('tab-btn-login');
+            const tabRegister = document.getElementById('tab-btn-register');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.className = "w-1/2 py-4 text-center font-bold text-blue-600 border-b-2 border-blue-600 transition cursor-pointer";
+                tabRegister.className = "w-1/2 py-4 text-center font-medium text-gray-500 hover:text-gray-800 transition cursor-pointer";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabLogin.className = "w-1/2 py-4 text-center font-medium text-gray-500 hover:text-gray-800 transition cursor-pointer";
+                tabRegister.className = "w-1/2 py-4 text-center font-bold text-blue-600 border-b-2 border-blue-600 transition cursor-pointer";
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('login-username').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('login-password').value;
+
+            const user = users.find(u => u.username === usernameInput && u.password === passwordInput);
+
+            if (user) {
+                currentUser = user;
+                saveToLocalStorage('techstore_current_user', currentUser);
+                
+                renderUserZone();
+                closeAuthModal();
+                showToast(`Xin chào ${user.name}! Đăng nhập thành công.`);
+                
+                if (user.role === 'admin') {
+                    showPage('admin-page');
+                } else {
+                    showPage('homepage');
+                }
+            } else {
+                showToast("Sai tên đăng nhập hoặc mật khẩu!", "error");
+            }
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('register-name').value.trim();
+            const usernameInput = document.getElementById('register-username').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('register-password').value;
+            const confirmPasswordInput = document.getElementById('register-confirm-password').value;
+
+            if (passwordInput.length < 6) {
+                showToast("Mật khẩu phải dài tối thiểu từ 6 ký tự!", "error");
+                return;
+            }
+
+            if (passwordInput !== confirmPasswordInput) {
+                showToast("Xác nhận mật khẩu không chính xác!", "error");
+                return;
+            }
+
+            const isExist = users.some(u => u.username === usernameInput);
+            if (isExist) {
+                showToast("Tên đăng nhập này đã được đăng ký trước đó!", "error");
+                return;
+            }
+
+            const newUser = {
+                username: usernameInput,
+                password: passwordInput,
+                name: fullName,
+                role: "user"
+            };
+
+            users.push(newUser);
+            saveToLocalStorage('techstore_users', users);
+
+            currentUser = newUser;
+            saveToLocalStorage('techstore_current_user', currentUser);
+
+            renderUserZone();
+            closeAuthModal();
+            showToast("Chúc mừng! Đăng ký tài khoản mới thành công.");
+            showPage('homepage');
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('techstore_current_user');
+            
+            renderUserZone();
+            showToast("Đã đăng xuất tài khoản.");
+            showPage('homepage');
+        }
+
+        // ================= XỬ LÝ TRANG CHỦ CỬA HÀNG =================
+
+        function renderStore(productsToRender = products) {
+            const grid = document.getElementById('product-grid');
+            const noProductsMsg = document.getElementById('no-products-msg');
+            const sectionCount = document.getElementById('store-section-count');
+            grid.innerHTML = '';
+
+            sectionCount.innerText = `${productsToRender.length} sản phẩm`;
+
+            if (productsToRender.length === 0) {
+                noProductsMsg.classList.remove('hidden');
+                return;
+            } else {
+                noProductsMsg.classList.add('hidden');
+            }
+
+            productsToRender.forEach(p => {
+                // Tính phần trăm giảm giá nếu có giá cũ
+                let discountBadge = '';
+                let priceDisplay = `<p class="text-red-500 font-extrabold text-base">${formatVND(p.price)}</p>`;
+                
+                if (p.oldPrice && p.oldPrice > p.price) {
+                    const pct = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+                    discountBadge = `<span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm">Giảm ${pct}%</span>`;
+                    priceDisplay = `
+                        <div class="flex flex-col">
+                            <span class="text-xs text-gray-400 line-through">${formatVND(p.oldPrice)}</span>
+                            <span class="text-red-500 font-extrabold text-base">${formatVND(p.price)}</span>
+                        </div>
+                    `;
+                }
+
+                // Nhãn sản phẩm mới
+                let newBadge = '';
+                if (p.isNew) {
+                    newBadge = `<span class="absolute top-3 left-3 bg-amber-500 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-lg shadow-sm border border-amber-300">NEW</span>`;
+                }
+
+                // Nhãn danh mục dự phòng nếu không phải New
+                const categoryBadge = (!p.isNew) ? `<span class="absolute top-3 left-3 bg-white/80 backdrop-blur-xs text-gray-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-gray-100">${p.category}</span>` : '';
+
+                const card = `
+                    <div class="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden hover:shadow-xl hover:-translate-y-1.5 transition duration-300 flex flex-col justify-between relative">
+                        <!-- Khung ảnh sản phẩm -->
+                        <div class="p-4 bg-gray-50 flex items-center justify-center h-48 cursor-pointer relative group" onclick="viewDetail(${p.id})">
+                            <img src="${p.img}" alt="${p.name}" class="max-h-full object-contain mix-blend-multiply transition duration-300 group-hover:scale-105">
+                            ${newBadge}
+                            ${categoryBadge}
+                            ${discountBadge}
+                        </div>
+                        <!-- Thông tin tóm tắt -->
+                        <div class="p-5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-2 line-clamp-2 hover:text-blue-600 cursor-pointer transition" onclick="viewDetail(${p.id})">${p.name}</h4>
+                                <div class="mb-4 h-12 flex items-center">${priceDisplay}</div>
+                            </div>
+                            <!-- Nút Xem chi tiết -->
+                            <button onclick="viewDetail(${p.id})" class="w-full text-center bg-gray-50 hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-2.5 rounded-xl transition cursor-pointer text-xs">
+                                Chi tiết sản phẩm
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+            specialFilter = null; // Tắt lọc đặc biệt khi bấm danh mục chuẩn
+            
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'font-semibold');
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'font-medium');
+            });
+
+            const homeButtons = document.querySelectorAll('.cat-btn');
+            homeButtons.forEach(btn => {
+                const text = btn.innerText.trim();
+                if ((category === 'all' && text === 'Tất cả') || (text === category)) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+                    btn.classList.remove('bg-gray-100', 'text-gray-700', 'font-medium');
+                }
+            });
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-blue-600', 'font-bold');
+                link.classList.add('text-gray-600', 'font-medium');
+                
+                const text = link.innerText.trim();
+                if ((category === 'all' && text.includes('Tất cả')) || text === category) {
+                    link.classList.add('text-blue-600', 'font-bold');
+                    link.classList.remove('text-gray-600', 'font-medium');
+                }
+            });
+
+            applyFilterAndSearch();
+        }
+
+        function filterSpecial(type) {
+            specialFilter = type;
+            currentCategory = 'all'; // Đưa danh mục chuẩn về mặc định
+
+            // Cập nhật trạng thái hiển thị của các nút phân loại trang chủ
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'font-semibold');
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'font-medium');
+                
+                const text = btn.innerText.trim();
+                if (type === 'new' && text.includes('Mới ra mắt')) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+                    btn.classList.remove('bg-gray-100', 'text-gray-700', 'font-medium');
+                } else if (type === 'promo' && text.includes('Siêu khuyến mãi')) {
+                    btn.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+                    btn.classList.remove('bg-gray-100', 'text-gray-700', 'font-medium');
+                }
+            });
+
+            // Đồng bộ màu sắc nút menu trên Navbar
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-blue-600', 'font-bold');
+                link.classList.add('text-gray-600', 'font-medium');
+            });
+
+            applyFilterAndSearch();
+            window.scrollTo({ top: document.getElementById('product-section').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function searchProducts() {
+            applyFilterAndSearch();
+        }
+
+        function applyFilterAndSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const sectionTitle = document.getElementById('store-section-title');
+            let filtered = products;
+
+            // Xử lý lọc đặc biệt trước
+            if (specialFilter === 'new') {
+                filtered = filtered.filter(p => p.isNew === true);
+                sectionTitle.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-amber-500 mr-2"></i>Sản Phẩm Mới Ra Mắt`;
+            } else if (specialFilter === 'promo') {
+                filtered = filtered.filter(p => p.isPromo === true);
+                sectionTitle.innerHTML = `<i class="fa-solid fa-fire text-red-500 mr-2"></i>Chương Trình Siêu Khuyến Mãi`;
+            } else {
+                // Lọc theo danh mục chuẩn
+                if (currentCategory !== 'all') {
+                    filtered = filtered.filter(p => p.category === currentCategory);
+                    sectionTitle.innerHTML = `<i class="fa-solid fa-layer-group text-blue-500 mr-2"></i>Danh mục: ${currentCategory}`;
+                } else {
+                    sectionTitle.innerHTML = `<i class="fa-solid fa-box-archive text-blue-600 mr-2"></i>Tất Cả Sản Phẩm`;
+                }
+            }
+
+            // Kết hợp từ khóa tìm kiếm
+            if (query !== '') {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
+                sectionTitle.innerHTML += ` <span class="text-sm font-medium text-gray-400">(Tìm kiếm: "${query}")</span>`;
+            }
+
+            renderStore(filtered);
+        }
+
+        // ================= XỬ LÝ CHI TIẾT SẢN PHẨM =================
+
+        function viewDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('detail-breadcrumb-cat').innerText = product.category;
+            document.getElementById('detail-cat-tag').innerText = product.category;
+            document.getElementById('detail-title').innerText = product.name;
+            
+            // Xử lý giá tiền tại trang chi tiết
+            const priceContainer = document.getElementById('detail-price');
+            if (product.oldPrice && product.oldPrice > product.price) {
+                const pct = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+                priceContainer.innerHTML = `
+                    <div class="flex items-baseline space-x-3 flex-wrap">
+                        <span class="text-3xl font-black text-red-500">${formatVND(product.price)}</span>
+                        <span class="text-base text-gray-400 line-through font-semibold">${formatVND(product.oldPrice)}</span>
+                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">Tiết kiệm ${pct}%</span>
+                    </div>
+                `;
+            } else {
+                priceContainer.innerHTML = `<span class="text-3xl font-black text-red-500">${formatVND(product.price)}</span>`;
+            }
+
+            document.getElementById('detail-desc').innerText = product.desc;
+            document.getElementById('detail-img').src = product.img;
+
+            // Nút "Thêm vào giỏ" nhận diện ID
+            document.getElementById('add-to-cart-btn').onclick = function() {
+                addToCart(product);
+            };
+
+            // Nút "Mua ngay"
+            document.getElementById('buy-now-btn').onclick = function() {
+                addToCart(product, true);
+            };
+
+            showPage('detail-page');
+        }
+
+        // ================= XỬ LÝ GIỎ HÀNG & ĐẶT HÀNG =================
+
+        // Thêm sản phẩm vào giỏ hàng
+        function addToCart(product, buyNow = false) {
+            const existingItem = cart.find(item => item.id === product.id);
+            
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    img: product.img,
+                    quantity: 1
+                });
+            }
+
+            saveToLocalStorage('techstore_cart', cart);
+            updateCartBadge();
+            showToast(`Đã thêm "${product.name}" vào giỏ hàng!`);
+
+            if (buyNow) {
+                openCartModal();
+                switchCartStep('checkout');
+            }
+        }
+
+        // Cập nhật số lượng hiển thị trên giỏ hàng
+        function updateCartBadge() {
+            const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').innerText = totalQuantity;
+        }
+
+        // Mở Modal Giỏ Hàng
+        function openCartModal() {
+            document.getElementById('cart-modal').classList.remove('hidden');
+            switchCartStep('view');
+            renderCartItems();
+        }
+
+        // Đóng Modal Giỏ Hàng
+        function closeCartModal() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        // Đổi bước của Giỏ Hàng (Xem giỏ hàng <=> Điền thông tin giao hàng)
+        function switchCartStep(step) {
+            const stepView = document.getElementById('cart-step-view');
+            const stepCheckout = document.getElementById('cart-step-checkout');
+            const backBtn = document.getElementById('cart-back-btn');
+            const nextBtn = document.getElementById('cart-next-btn');
+            const submitBtn = document.getElementById('cart-submit-btn');
+
+            if (step === 'view') {
+                stepView.classList.remove('hidden');
+                stepCheckout.classList.add('hidden');
+                backBtn.classList.add('hidden');
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            } else {
+                if (cart.length === 0) {
+                    showToast("Giỏ hàng đang trống, vui lòng thêm sản phẩm trước!", "error");
+                    return;
+                }
+                stepView.classList.add('hidden');
+                stepCheckout.classList.remove('hidden');
+                backBtn.classList.remove('hidden');
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+
+                // Điền thông tin tự động nếu đã đăng nhập tài khoản thường/admin
+                if (currentUser) {
+                    document.getElementById('checkout-name').value = currentUser.name;
+                }
+            }
+        }
+
+        // Render các sản phẩm hiện có trong giỏ hàng ra Modal
+        function renderCartItems() {
+            const container = document.getElementById('cart-items-container');
+            const emptyState = document.getElementById('cart-empty-state');
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                emptyState.classList.remove('hidden');
+                container.classList.add('hidden');
+                document.getElementById('cart-total-price').innerText = '0 đ';
+                document.getElementById('cart-next-btn').disabled = true;
+                document.getElementById('cart-next-btn').classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.classList.remove('hidden');
+            document.getElementById('cart-next-btn').disabled = false;
+            document.getElementById('cart-next-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+            let grandTotal = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                grandTotal += itemTotal;
+
+                const itemRow = `
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-4 gap-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gray-50 p-1.5 rounded-xl flex items-center justify-center flex-shrink-0 border border-gray-100">
+                                <img src="${item.img}" alt="" class="max-h-full object-contain">
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-gray-900 text-sm line-clamp-1">${item.name}</h5>
+                                <p class="text-xs text-emerald-600 font-semibold mt-1">${formatVND(item.price)}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 flex-shrink-0">
+                            <!-- Nút tăng giảm số lượng -->
+                            <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                                <button onclick="adjustQuantity(${item.id}, -1)" class="px-2.5 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer text-xs font-bold">-</button>
+                                <span class="px-3 text-sm font-bold text-gray-800">${item.quantity}</span>
+                                <button onclick="adjustQuantity(${item.id}, 1)" class="px-2.5 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer text-xs font-bold">+</button>
+                            </div>
+                            <!-- Nút xóa nhanh sản phẩm -->
+                            <button onclick="removeCartItem(${item.id})" class="text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition cursor-pointer">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += itemRow;
+            });
+
+            document.getElementById('cart-total-price').innerText = formatVND(grandTotal);
+        }
+
+        // Tăng giảm số lượng sản phẩm trong giỏ
+        function adjustQuantity(productId, amount) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+
+            item.quantity += amount;
+            if (item.quantity <= 0) {
+                cart = cart.filter(i => i.id !== productId);
+            }
+
+            saveToLocalStorage('techstore_cart', cart);
+            updateCartBadge();
+            renderCartItems();
+        }
+
+        // Xóa sản phẩm khỏi giỏ hàng
+        function removeCartItem(productId) {
+            cart = cart.filter(i => i.id !== productId);
+            saveToLocalStorage('techstore_cart', cart);
+            updateCartBadge();
+            renderCartItems();
+            showToast("Đã loại bỏ sản phẩm khỏi giỏ hàng.", "error");
+        }
+
+        // Trích xuất trigger submit form đặt hàng
+        function triggerCheckoutForm() {
+            document.getElementById('hidden-checkout-submit').click();
+        }
+
+        // Đặt hàng thực tế & Lưu trữ đơn hàng
+        function submitOrder(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('checkout-name').value.trim();
+            const phone = document.getElementById('checkout-phone').value.trim();
+            const address = document.getElementById('checkout-address').value.trim();
+            const payment = document.getElementById('checkout-payment').value;
+
+            // Tính tổng tiền đơn hàng
+            const grandTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            
+            // Mã hóa ngẫu nhiên ID đơn hàng (Ví dụ: DH-4839)
+            const orderId = "DH-" + Math.floor(1000 + Math.random() * 9000);
+
+            // Tạo cấu trúc dữ liệu đơn hàng mới
+            const newOrder = {
+                id: orderId,
+                customerName: name,
+                customerPhone: phone,
+                customerAddress: address,
+                paymentMethod: payment,
+                items: [...cart],
+                totalAmount: grandTotal,
+                date: new Date().toLocaleString('vi-VN'),
+                status: "Chờ xử lý"
+            };
+
+            // Lưu đơn hàng vào mảng chính
+            orders.push(newOrder);
+            saveToLocalStorage('techstore_orders', orders);
+
+            // Làm trống giỏ hàng
+            cart = [];
+            saveToLocalStorage('techstore_cart', cart);
+            updateCartBadge();
+
+            // Đóng Modal & Reset Form
+            closeCartModal();
+            document.getElementById('checkout-form').reset();
+
+            // Hiển thị thông báo chúc mừng
+            showToast("Đặt hàng thành công! Đơn hàng của bạn đang được kiểm duyệt.");
+
+            // Dựng lại dữ liệu cho Admin để quản trị đơn hàng
+            renderAdminOrders();
+            updatePendingBadge();
+        }
+
+        // ================= QUẢN TRỊ (ADMIN PANEL) =================
+
+        // Chuyển tab trong trang Admin (Sản phẩm <=> Đơn hàng)
+        function switchAdminTab(tabId) {
+            activeAdminTab = tabId;
+            const tabProducts = document.getElementById('admin-products-tab');
+            const tabOrders = document.getElementById('admin-orders-tab');
+            const btnProducts = document.getElementById('admin-tab-products-btn');
+            const btnOrders = document.getElementById('admin-tab-orders-btn');
+
+            if (tabId === 'products-tab') {
+                tabProducts.classList.remove('hidden');
+                tabOrders.classList.add('hidden');
+                
+                btnProducts.className = "px-5 py-2 rounded-lg font-bold text-sm bg-white text-blue-600 shadow-sm transition cursor-pointer";
+                btnOrders.className = "px-5 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:text-gray-800 transition cursor-pointer";
+            } else {
+                tabProducts.classList.add('hidden');
+                tabOrders.classList.remove('hidden');
+
+                btnProducts.className = "px-5 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:text-gray-800 transition cursor-pointer";
+                btnOrders.className = "px-5 py-2 rounded-lg font-bold text-sm bg-white text-blue-600 shadow-sm transition cursor-pointer";
+            }
+        }
+
+        // Render toàn bộ sản phẩm lên danh sách quản lý
+        function renderAdminTable() {
+            const tableBody = document.getElementById('admin-table-body');
+            tableBody.innerHTML = '';
+
+            if(products.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center p-8 text-gray-400 font-medium">Kho hàng hiện tại đang trống.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            products.forEach(p => {
+                const tr = `
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="p-4 pl-6 text-gray-500 font-semibold">#${p.id}</td>
+                        <td class="p-4">
+                            <div class="w-12 h-12 bg-gray-50 rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center p-1">
+                                <img src="${p.img}" alt="" class="max-h-full object-contain">
+                            </div>
+                        </td>
+                        <td class="p-4 font-bold text-gray-900 max-w-xs truncate">${p.name}</td>
+                        <td class="p-4">
+                            <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full text-[11px] font-bold">${p.category}</span>
+                        </td>
+                        <td class="p-4 text-emerald-600 font-bold">${formatVND(p.price)}</td>
+                        <td class="p-4 text-right pr-6 space-x-2">
+                            <!-- Nút sửa -->
+                            <button onclick="openEditForm(${p.id})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition cursor-pointer" title="Sửa thông tin">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <!-- Nút xóa -->
+                            <button onclick="triggerDeleteProduct(${p.id})" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition cursor-pointer" title="Xóa">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += tr;
+            });
+        }
+
+        // Render toàn bộ ĐƠN HÀNG đã đặt lên Bảng điều khiển Quản trị đơn hàng
+        function renderAdminOrders() {
+            const tableBody = document.getElementById('admin-orders-body');
+            tableBody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center p-8 text-gray-400 font-medium">Chưa nhận được đơn đặt hàng nào.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            orders.forEach(order => {
+                // Tạo chi tiết mô tả chuỗi sản phẩm trong đơn
+                let itemsList = '';
+                order.items.forEach(it => {
+                    itemsList += `<div class="text-xs text-gray-600 flex justify-between space-x-2 text-wrap"><span>- ${it.name}</span><span class="font-bold text-gray-800">x${it.quantity}</span></div>`;
+                });
+
+                // Chọn màu badge trạng thái phù hợp
+                const statusColor = order.status === "Chờ xử lý" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+
+                const tr = `
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="p-4 pl-6 text-gray-500 font-bold font-mono">${order.id}</td>
+                        <td class="p-4">
+                            <p class="font-bold text-gray-900 text-sm">${order.customerName}</p>
+                            <p class="text-xs text-gray-500 mt-0.5"><i class="fa-solid fa-phone mr-1"></i>${order.customerPhone}</p>
+                            <p class="text-xs text-gray-400 mt-1 max-w-[200px] truncate" title="${order.customerAddress}"><i class="fa-solid fa-house mr-1"></i>${order.customerAddress}</p>
+                        </td>
+                        <td class="p-4 py-3 min-w-[250px]">
+                            <div class="space-y-1">${itemsList}</div>
+                            <p class="text-[10px] text-gray-400 mt-2"><i class="fa-solid fa-clock mr-1"></i>Thời gian: ${order.date}</p>
+                        </td>
+                        <td class="p-4 text-rose-500 font-extrabold">${formatVND(order.totalAmount)}</td>
+                        <td class="p-4">
+                            <span class="${statusColor} px-2.5 py-1 rounded-full text-[11px] font-bold inline-block">${order.status}</span>
+                        </td>
+                        <td class="p-4 text-right pr-6 space-x-1.5 whitespace-nowrap">
+                            <!-- Nút duyệt trạng thái đơn hàng -->
+                            ${order.status === 'Chờ xử lý' ? `
+                            <button onclick="approveOrder('${order.id}')" class="text-emerald-600 hover:bg-emerald-50 px-2 py-1.5 rounded-lg transition cursor-pointer text-xs font-bold" 					title="Duyệt đơn">
+                                <i class="fa-solid fa-circle-check mr-1"></i>Duyệt đơn
+                            </button>
+                            ` : ''}
+                            <!-- Nút xóa đơn -->
+                            <button onclick="triggerDeleteOrder('${order.id}')" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition cursor-pointer" title="Hủy đơn">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += tr;
+            });
+        }
+
+        // Cập nhật biểu tượng đếm số lượng đơn hàng "Chờ xử lý" trên tab
+        function updatePendingBadge() {
+            const pendingCount = orders.filter(o => o.status === "Chờ xử lý").length;
+            const badge = document.getElementById('admin-pending-badge');
+            if (pendingCount > 0) {
+                badge.innerText = pendingCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // Duyệt hoàn tất đơn hàng
+        function approveOrder(orderId) {
+            const targetOrder = orders.find(o => o.id === orderId);
+            if (targetOrder) {
+                targetOrder.status = "Đã giao hàng";
+                saveToLocalStorage('techstore_orders', orders);
+                renderAdminOrders();
+                updatePendingBadge();
+                showToast(`Đã duyệt thành công đơn hàng ${orderId}!`);
+            }
+        }
+
+        // Kích hoạt Xóa đơn hàng qua Custom Confirm Modal
+        function triggerDeleteOrder(orderId) {
+            showCustomConfirm(`Bạn có chắc chắn muốn hủy đơn hàng ${orderId} này khỏi cơ sở dữ liệu không?`, function() {
+                orders = orders.filter(o => o.id !== orderId);
+                saveToLocalStorage('techstore_orders', orders);
+                renderAdminOrders();
+                updatePendingBadge();
+                showToast(`Đã hủy thành công đơn hàng ${orderId}!`, "error");
+            });
+        }
+
+        // Hàm bật/tắt ô nhập Giá gốc dựa trên checkbox Khuyến mãi
+        function toggleOldPriceInput() {
+            const isPromoChecked = document.getElementById('form-product-is-promo').checked;
+            const oldPriceInput = document.getElementById('form-product-old-price');
+            
+            if (isPromoChecked) {
+                oldPriceInput.disabled = false;
+                oldPriceInput.required = true;
+                oldPriceInput.classList.replace('bg-gray-200', 'bg-gray-50');
+                oldPriceInput.focus();
+            } else {
+                oldPriceInput.disabled = true;
+                oldPriceInput.required = false;
+                oldPriceInput.value = '';
+                oldPriceInput.classList.replace('bg-gray-50', 'bg-gray-200');
+            }
+        }
+
+        // Mở Modal để Thêm Mới Sản Phẩm
+        function openAddForm() {
+            document.getElementById('product-form').reset();
+            document.getElementById('form-product-id').value = '';
+            document.getElementById('modal-title').innerText = "Thêm Sản Phẩm Mới";
+            document.getElementById('submit-btn').innerText = "Thêm mới";
+            
+            // Xóa ảnh cũ xem trước
+            clearSelectedImage();
+
+            // Đưa trạng thái các trường khuyến mãi về mặc định
+            document.getElementById('form-product-is-new').checked = false;
+            document.getElementById('form-product-is-promo').checked = false;
+            document.getElementById('form-product-old-price').value = '';
+            document.getElementById('form-product-old-price').disabled = true;
+            document.getElementById('form-product-old-price').classList.replace('bg-gray-50', 'bg-gray-200');
+
+            const modal = document.getElementById('product-modal');
+            modal.classList.remove('hidden');
+        }
+
+        // Mở Modal và Đổ dữ liệu sản phẩm để Chỉnh Sửa
+        function openEditForm(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('form-product-id').value = product.id;
+            document.getElementById('form-product-name').value = product.name;
+            document.getElementById('form-product-price').value = product.price;
+            document.getElementById('form-product-cat').value = product.category;
+            document.getElementById('form-product-img').value = product.img;
+            document.getElementById('form-product-desc').value = product.desc;
+
+            // Đổ ảnh hiện tại vào xem trước
+            updateImagePreview(product.img);
+
+            // Đổ dữ liệu khuyến mãi và nhãn mới
+            const isNew = product.isNew === true;
+            const isPromo = product.isPromo === true;
+            document.getElementById('form-product-is-new').checked = isNew;
+            document.getElementById('form-product-is-promo').checked = isPromo;
+
+            const oldPriceInput = document.getElementById('form-product-old-price');
+            if (isPromo) {
+                oldPriceInput.value = product.oldPrice || '';
+                oldPriceInput.disabled = false;
+                oldPriceInput.classList.replace('bg-gray-200', 'bg-gray-50');
+            } else {
+                oldPriceInput.value = '';
+                oldPriceInput.disabled = true;
+                oldPriceInput.classList.replace('bg-gray-50', 'bg-gray-200');
+            }
+
+            document.getElementById('modal-title').innerText = "Chỉnh Sửa Thông Tin Sản Phẩm";
+            document.getElementById('submit-btn').innerText = "Lưu thay đổi";
+
+            const modal = document.getElementById('product-modal');
+            modal.classList.remove('hidden');
+        }
+
+        // Đóng cửa sổ Modal
+        function closeModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        // Xử lý gửi Form (Thêm hoặc Sửa)
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('form-product-id').value;
+            const name = document.getElementById('form-product-name').value.trim();
+            const price = parseInt(document.getElementById('form-product-price').value);
+            const category = document.getElementById('form-product-cat').value;
+            const img = document.getElementById('form-product-img').value.trim();
+            const desc = document.getElementById('form-product-desc').value.trim();
+
+            // Trích xuất thông tin khuyến mãi và nhãn hiển thị mới
+            const isNew = document.getElementById('form-product-is-new').checked;
+            const isPromo = document.getElementById('form-product-is-promo').checked;
+            const oldPriceValue = document.getElementById('form-product-old-price').value;
+            let oldPrice = null;
+
+            if (isPromo && oldPriceValue !== '') {
+                oldPrice = parseInt(oldPriceValue);
+                if (oldPrice <= price) {
+                    showToast("Lỗi: Giá gốc chưa giảm phải lớn hơn giá hiện tại!", "error");
+                    return;
+                }
+            }
+
+            if (id === '') {
+                // Thêm mới
+                const nextId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                const newProduct = { 
+                    id: nextId, 
+                    name, 
+                    price, 
+                    oldPrice, 
+                    category, 
+                    isNew, 
+                    isPromo, 
+                    img, 
+                    desc 
+                };
+                products.push(newProduct);
+                showToast("Thêm sản phẩm mới thành công!");
+            } else {
+                // Chỉnh sửa
+                const targetId = parseInt(id);
+                const index = products.findIndex(p => p.id === targetId);
+                
+                if (index !== -1) {
+                    products[index] = { 
+                        id: targetId, 
+                        name, 
+                        price, 
+                        oldPrice, 
+                        category, 
+                        isNew, 
+                        isPromo, 
+                        img, 
+                        desc 
+                    };
+                    showToast("Cập nhật thông tin sản phẩm thành công!");
+                }
+            }
+
+            saveToLocalStorage('techstore_products', products);
+            renderStore();
+            renderAdminTable();
+            closeModal();
+        }
+
+        // Kích hoạt Xóa sản phẩm qua Custom Confirm Modal
+        function triggerDeleteProduct(productId) {
+            showCustomConfirm("Bạn có chắc chắn muốn xóa sản phẩm này ra khỏi danh mục bán hàng không?", function() {
+                products = products.filter(p => p.id !== productId);
+                saveToLocalStorage('techstore_products', products);
+                renderStore();
+                renderAdminTable();
+                showToast("Đã xóa sản phẩm thành công!", "error");
+            });
+        }
+
+        // Khởi tạo các sự kiện kéo thả khi trang tải xong
+        document.addEventListener('DOMContentLoaded', () => {
+            const dragZone = document.getElementById('image-drag-zone');
+            if (dragZone) {
+                // Sự kiện dragover/dragenter để làm nổi bật vùng thả
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dragZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dragZone.classList.add('border-blue-500', 'bg-blue-50/40');
+                    }, false);
+                });
+
+                // Sự kiện dragleave/drop để trả về trạng thái cũ
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dragZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dragZone.classList.remove('border-blue-500', 'bg-blue-50/40');
+                    }, false);
+                });
+
+                // Xử lý khi người dùng thả tệp vào vùng kéo thả
+                dragZone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files.length > 0) {
+                        processImageFile(files[0]);
+                    }
+                }, false);
+
+                // Nhấp vào vùng kéo thả để mở hộp thoại tệp
+                dragZone.addEventListener('click', (e) => {
+                    // Tránh trigger khi nhấn nút X xóa ảnh
+                    if (!e.target.closest('button')) {
+                        document.getElementById('form-product-file').click();
+                    }
+                });
+            }
+        });
+
+        // Xử lý khi chọn ảnh từ hệ thống bằng hộp thoại duyệt file
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                processImageFile(files[0]);
+            }
+        }
+
+        // Đọc tệp và chuyển đổi thành dạng chuỗi Base64
+        function processImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast("Vui lòng chọn tệp hình ảnh hợp lệ (PNG, JPG, WEBP)!", "error");
+                return;
+            }
+
+            // Giới hạn dung lượng file khoảng 1.5MB để tránh đầy bộ nhớ LocalStorage
+            if (file.size > 1.5 * 1024 * 1024) {
+                showToast("Ảnh quá lớn! Hãy chọn tệp dưới 1.5MB để đảm bảo lưu trữ mượt mà.", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result;
+                document.getElementById('form-product-img').value = base64String;
+                updateImagePreview(base64String);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Cập nhật giao diện xem trước ảnh trong form
+        function updateImagePreview(src) {
+            const prompt = document.getElementById('drag-zone-prompt');
+            const preview = document.getElementById('drag-zone-preview');
+            const previewSrc = document.getElementById('form-image-preview-src');
+
+            if (src && src.trim() !== '') {
+                previewSrc.src = src;
+                prompt.classList.add('hidden');
+                preview.classList.remove('hidden');
+            } else {
+                previewSrc.src = '';
+                prompt.classList.remove('hidden');
+                preview.classList.add('hidden');
+            }
+        }
+
+        // Xóa ảnh đã chọn và hoàn tác form
+        function clearSelectedImage(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('form-product-file').value = '';
+            document.getElementById('form-product-img').value = '';
+            updateImagePreview('');
+        }
+
+        // Hiện hoặc ẩn ô nhập liên kết ảnh trực tiếp
+        function toggleUrlInput(event) {
+            if (event) event.preventDefault();
+            const urlInput = document.getElementById('form-product-img');
+            const btn = event.currentTarget;
+            if (urlInput.classList.contains('hidden')) {
+                urlInput.classList.remove('hidden');
+                btn.innerText = "Ẩn ô nhập URL";
+                urlInput.focus();
+            } else {
+                urlInput.classList.add('hidden');
+                btn.innerText = "Hiện ô nhập URL";
+            }
+        }
+
+        // Tự động xem trước ảnh khi người dùng gõ URL trực tiếp
+        function handleUrlInput(value) {
+            updateImagePreview(value);
+        }
+	function exportData() {
+    const data = localStorage.getItem('techstore_products');
+    if (!data) {
+        alert("Không có dữ liệu để xuất!");
+        return;
+    }
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "khôi phục.json";
+    a.click();
+}
+	function importData(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        localStorage.setItem('techstore_products', content);
+        location.reload(); // Tải lại trang để cập nhật dữ liệu
+    };
+    reader.readAsText(file);
+}
+    </script>
+</body>
+</html>
