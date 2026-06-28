@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechStore - Cửa Hàng Máy Tính </title>
+    <title>TechStore - Cửa Hàng Máy Tính</title>
     <!-- Tailwind CSS và FontAwesome Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -64,7 +64,7 @@
                 <!-- Nút Giỏ Hàng -->
                 <div class="relative cursor-pointer hover:text-blue-600 transition p-2 bg-gray-50 hover:bg-blue-50 rounded-xl" onclick="openCartModal()">
                     <i class="fa-solid fa-bag-shopping text-xl"></i>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">0</span>
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-		white">0</span>
                 </div>
 
                 <!-- Phân đoạn Đăng nhập / Người dùng -->
@@ -86,11 +86,11 @@
                     <div>
                         <span class="bg-blue-500 text-xs font-bold uppercase px-3 py-1 rounded-full tracking-wider">Chào mừng đến với TechStore</span>
                         <h2 class="text-3xl md:text-5xl font-extrabold my-4 leading-tight">Trải Nghiệm Công Nghệ<br>Đột Phá Tương Lai</h2>
-                        <p class="text-blue-100 mb-6">Chuyên cung cấp linh kiện máy tính, máy tính, laptop chính hãng với chế độ bảo hành cực chất.</p>
+                        <p class="text-blue-100 mb-6">Chuyên cung cấp linh kiện máy tính, laptop chính hãng với chế độ bảo hành cực chất.</p>
                         <a href="#product-section" class="bg-white text-blue-600 font-bold px-6 py-3 rounded-xl shadow-md hover:bg-gray-100 transition inline-block">Khám phá sản phẩm</a>
                     </div>
                     <div class="hidden md:block justify-self-center">
-                        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&auto=format&fit=crop&q=80" alt="Banner" class="rounded-2xl shadow-2xl max-w-sm h-64 object-cover">
+                        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&auto=format&fit=crop&q=80" alt="Banner" class="rounded-2xl shadow-2xl max-w-sm h-64 			object-cover">
                     </div>
                 </div>
             </div>
@@ -100,12 +100,12 @@
                 <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <!-- Danh mục sản phẩm -->
                     <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                        <button onclick="showPage('homepage'); filterCategory('all')" class="cat-btn bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer">Trang Chủ</button>
-                        <button onclick="showPage('homepage'); filterCategory('CPU')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">CPU</button>
-                        <button onclick="showPage('homepage'); filterCategory('Mainboard')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">Mainboard</button>
-						<button onclick="showPage('homepage'); filterCategory('Bàn Phím')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">Bàn Phím</button>	
-						<button onclick="showPage('homepage'); filterCategory('MacBook')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition cursor-pointer">MacBook</button>
-                        <button onclick="showPage('homepage'); filterSpecial('new')" class="cat-btn bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer">
+                        <button onclick="showPage('homepage'); filterCategory('all')" class="cat-btn bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-				pointer">Trang Chủ</button>
+                        <button onclick="showPage('homepage'); filterCategory('CPU')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium 				transition cursor-pointer">CPU</button>
+                        <button onclick="showPage('homepage'); filterCategory('Mainboard')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-				medium transition cursor-pointer">Mainboard</button>
+			<button onclick="showPage('homepage'); filterCategory('Bàn Phím')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 							rounded-xl text-sm font-medium transition cursor-pointer">Bàn Phím</button>	
+			<button onclick="showPage('homepage'); filterCategory('MacBook')" class="cat-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-					medium transition cursor-pointer">MacBook</button>
+                        <button onclick="showPage('homepage'); filterSpecial('new')" class="cat-btn bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-4 py-2 rounded-x				l text-sm font-semibold transition cursor-pointer">
                             <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Mới ra mắt
                         </button>
                         <button onclick="showPage('homepage'); filterSpecial('promo')" class="cat-btn bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer">
@@ -120,7 +120,7 @@
                 </div>
             </div>
 
-            <!-- Grid hiển thị sản phẩm -->
+            <!-- hiển thị sản phẩm -->
             <div class="container mx-auto px-4 pb-16">
                 <div class="mb-6 flex items-center justify-between">
                     <h3 id="store-section-title" class="text-2xl font-black text-gray-900">Tất Cả Sản Phẩm</h3>
@@ -136,7 +136,7 @@
             </div>
         </div>
 
-        <!-- ================= PAGE 2: TRANG CHI TIẾT SẢN PHẨM ================= -->
+        <!--TRANG CHI TIẾT SẢN PHẨM -->
         <div id="detail-page" class="page-section hidden container mx-auto px-4 py-8">
             <!-- Breadcrumb điều hướng -->
             <div class="text-sm text-gray-500 mb-6 flex items-center space-x-2">
@@ -222,7 +222,7 @@
             </div>
         </div>
 
-        <!-- ================= PAGE 3: TRANG QUẢN TRỊ ADMIN (BẢO MẬT) ================= -->
+        <!--  PAGE 3:  -->
         <div id="admin-page" class="page-section hidden container mx-auto px-4 py-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-100 pb-4">
                 <div>
@@ -246,6 +246,13 @@
                         <i class="fa-solid fa-receipt mr-1.5"></i>khôi phục 
                         <span id="admin-pending-badge" class="ml-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span></button>
                 </div>
+<div class="mt-8 p-6 bg-white rounded-2xl border border-gray-100">
+    <h3 class="text-lg font-bold mb-4">Đổi mật khẩu Admin</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="password" id="new-admin-pass" placeholder="Mật khẩu mới" class="border p-2 rounded-xl">
+        <button onclick="changeAdminPassword()" class="bg-blue-600 text-white px-4 py-2 rounded-xl">Cập nhật</button>
+    </div>
+</div>
             </div>
 
             <!-- TAB 1: QUẢN LÝ SẢN PHẨM -->
@@ -386,7 +393,7 @@
         </div>
     </div>
 
-    <!-- ================= MODAL: THÊM / SỬA SẢN PHẨM ================= -->
+    <!--THÊM / SỬA SẢN PHẨM -->
     <div id="product-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300">
             <!-- Header Modal -->
@@ -397,7 +404,7 @@
                 </button>
             </div>
             
-            <!-- Form nội dung -->
+            <!-- nội dung -->
             <form id="product-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
                 <!-- ID ẩn để phục vụ cho việc chỉnh sửa -->
                 <input type="hidden" id="form-product-id">
@@ -426,7 +433,7 @@
                     </div>
                 </div>
 
-                <!-- Nhãn trạng thái đặc biệt & Giá gốc (Khuyến mãi) -->
+                <!-- (Khuyến mãi) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
                     <div>
                         <label class="block text-xs font-bold text-blue-800 uppercase mb-2">Trạng thái nhãn hiển thị</label>
@@ -443,7 +450,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Giá gốc khi chưa giảm (VND)</label>
-                        <input type="number" id="form-product-old-price" min="0" disabled class="w-full bg-gray-200 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none transition" placeholder="Ví dụ: 34990000">
+                        <input type="number" id="form-product-old-price" min="0" disabled class="w-full bg-gray-200 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none 				transition" placeholder="Ví dụ: 34990000">
                         <p class="text-[10px] text-gray-400 mt-1">Chỉ kích hoạt khi tích chọn "Siêu khuyến mãi". Giá gốc phải lớn hơn giá bán hiện tại.</p>
                     </div>
                 </div>
@@ -453,7 +460,7 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Hình ảnh sản phẩm *</label>
                     
                     <!-- Vùng kéo thả hoặc nhấp chọn ảnh -->
-                    <div id="image-drag-zone" class="border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-2xl p-6 text-center cursor-pointer bg-gray-50 hover:bg-blue-50/20 transition-all duration-300 relative overflow-hidden group">
+                    <div id="image-drag-zone" class="border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-2xl p-6 text-center cursor-pointer bg-gray-50 hover:bg-blue-50/20 				transition-all duration-300 relative overflow-hidden group">
                         <input type="file" id="form-product-file" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
                         
                         <!-- Trạng thái chưa chọn ảnh -->
@@ -512,7 +519,6 @@
 
             <!-- Form Đăng Nhập -->
             <form id="login-form" onsubmit="handleLogin(event)" class="p-6 space-y-4">
-                <p class="text-xs text-gray-400 mb-2">Tài khoản demo: <span class="font-semibold text-gray-700">admin / admin123</span></p>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-2">Tên Đăng Nhập *</label>
                     <div class="relative">
@@ -1356,6 +1362,7 @@
 
             renderStore(filtered);
         }
+	
 
         // ================= XỬ LÝ CHI TIẾT SẢN PHẨM =================
 
@@ -2070,6 +2077,56 @@
         location.reload(); // Tải lại trang để cập nhật dữ liệu
     };
     reader.readAsText(file);
+}
+// Hàm để tự động tải và xử lý dữ liệu khi trang web được tải xong
+async function loadBackupData() {
+    try {
+        // Tải file JSON
+        const response = await fetch('khoiphuc.json');
+        
+        // Kiểm tra nếu file không tồn tại hoặc lỗi mạng
+        if (!response.ok) {
+            throw new Error('Không thể tải file khoiphuc.json');
+        }
+        
+        // Chuyển đổi dữ liệu sang dạng object
+        const data = await response.json();
+        
+        // Gọi hàm xử lý dữ liệu của bạn ở đây
+        processData(data);
+        
+        console.log("Dữ liệu khôi phục đã được tải thành công:", data);
+        
+    } catch (error) {
+        console.error('Lỗi khi khôi phục dữ liệu:', error);
+    }
+}
+
+// Hàm xử lý dữ liệu sau khi lấy được từ file JSON
+function processData(data) {
+    // Viết logic khôi phục dữ liệu tại đây (ví dụ: gán vào biến, lưu vào LocalStorage, v.v.)
+    // Ví dụ: localStorage.setItem('userData', JSON.stringify(data));
+}
+
+// Chạy hàm khi trang web vừa tải xong hoàn toàn
+window.addEventListener('load', loadBackupData);
+function changeAdminPassword() {
+    // 1. Lấy giá trị từ ô nhập liệu (bạn cần có id này trong form của bạn)
+    const newPassword = document.getElementById('new-admin-pass').value;
+    
+    if (!newPassword || newPassword.length < 6) {
+        alert("Vui lòng nhập mật khẩu mới (tối thiểu 6 ký tự)!");
+        return;
+    }
+
+    // 2. Lưu mật khẩu vào LocalStorage dưới key là 'admin_password'
+    localStorage.setItem('admin_password', newPassword);
+    
+    // 3. Thông báo cho người dùng
+    alert("Đã cập nhật mật khẩu Admin thành công!");
+    
+    // 4. Reset ô nhập liệu
+    document.getElementById('new-admin-pass').value = '';
 }
     </script>
 </body>
